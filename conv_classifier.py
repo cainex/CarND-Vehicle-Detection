@@ -14,29 +14,33 @@ import glob
 import tensorflow as tf
 
 class conv_classifier:
+    '''
+    Class to load a saved Conv Network and perform classification on supplied batch of images
+    '''
     def __init__(self):
+        # tensorflow session
         self.sess = tf.Session()
-        saver = tf.train.import_meta_graph('traffic_sign.meta')
+
+        # grab saved network
+        saver = tf.train.import_meta_graph('vehicle_detect.meta')
         saver.restore(self.sess, tf.train.latest_checkpoint('./'))
         self.graph = tf.get_default_graph()
-        #print([n.name for n in tf.get_default_graph().as_graph_def().node])
-#        for n in tf.get_default_graph().as_graph_def().node:
-#            print(n.name)
         self.x = self.graph.get_tensor_by_name("INPUT:0")
         self.keep_prob = self.graph.get_tensor_by_name("KEEP_PROB:0")
         self.logits = self.graph.get_tensor_by_name("output_layer/BiasAdd:0")
-        
 
     def classify_images(self, images):
+        '''
+        Perform classification on supplied images. Uses a softmax output. Since
+        we only have two classes, we will set a threshold to return a possitive detection
+        to hopefully remove some noise from the detection
+        '''        
         train_images = []
         for image in images:
-            # res_img = cv2.resize(images[i], (64,64), interpolation=cv2.INTER_CUBIC)
-            # gray_norm_img = self.convert_to_gray_and_normalize(res_img)
             gray_norm_img = self.convert_to_gray_and_normalize(image)
             train_images.append(gray_norm_img)
 
         x_batch = np.array(train_images)
-#        result = self.sess.run(tf.argmax(self.logits,1), feed_dict={self.x:x_batch, self.keep_prob: 1.0} )
         results = self.sess.run(tf.nn.softmax(self.logits), feed_dict={self.x:x_batch, self.keep_prob: 1.0} )
         return_result = []
         for result in results:
@@ -47,23 +51,28 @@ class conv_classifier:
 
         return(return_result)
 
-
-
     def __exit__(self):
+        '''
+        destructor
+        '''
         self.sess.close()
 
     def convert_to_gray(self, x):
-    #    gray_image = img_as_ubyte(exposure.equalize_adapthist(x))
-    #    gray_image = cv2.cvtColor(gray_image, cv2.COLOR_RGB2GRAY)
-    #    return np.reshape((gray_image-[128])/[128], [32,32,1])  
-    #    return np.reshape((cv2.cvtColor(x, cv2.COLOR_RGB2GRAY)-[128])/[128], [32,32,1])  
-    #    return cv2.cvtColor(x, cv2.COLOR_RGB2GRAY)
+        '''
+        Convert image to grayscale
+        '''
         return rgb2gray(x)
 
     def normalize_image(self, x):
+        '''
+        Normalize image
+        '''
         return np.reshape(x/[255], [64,64,1])
 
     def convert_to_gray_and_normalize(self, x):
+        '''
+        Convert image to grayscale and normalize for input to Conv Network
+        '''
         return self.normalize_image(self.convert_to_gray(x))
 
 # if __name__ == "__main__":

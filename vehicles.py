@@ -3,49 +3,51 @@ from scipy.ndimage.measurements import label
 from conv_classifier import conv_classifier
 
 class vehicles:
+    '''
+    Class that preforms the vehicle detection and holds the track of
+    all detected vehicles
+    '''
     def __init__(self, clf, params, X_scaler):
-        self.done = 0
+        # Handle to current image to run detection on
         self.img = None
+
+        # SVM classifier
         self.clf = clf
         self.params = params
         self.X_scaler = X_scaler
 
+        # Detected window history
         self.hist_depth = 10
         self.hist_windows = []
 
+        # Detection heat-map
         self.heat_map = None
         self.threshold = 8
         #self.frame_threshold = 2
         self.labels = None
 
+        # Counter for debug images
         self.img_out_counter = 0
+
+        # Convolutional neural network classifier
         self.conv_clf = conv_classifier()
 
     def process_image(self, image):
+        '''
+        Process a single incoming image
+        '''
+
+        # set image to detect vehicles
         self.img = image
 
+        # Create a copy to draw final image
         draw_image = np.copy(self.img)
 
+        # Set desired overlap for windows
         overlap = (0.9, 0.9)
 
+        # Create sliding windows to search for
         windows = []
-        # windows += slide_window(self.img, x_start_stop=[300, 980], y_start_stop=[350, 550],
-        #                         xy_window=(48,48), xy_overlap=(0.5,0.5))
-        # windows += slide_window(self.img, x_start_stop=[None, None], y_start_stop=[400, 464],
-        #                         xy_window=(64,64), xy_overlap=overlap)
-        # windows += slide_window(self.img, x_start_stop=[None, None], y_start_stop=[416, 480],
-        #                         xy_window=(64,64), xy_overlap=overlap)
-        # windows += slide_window(self.img, x_start_stop=[None, None], y_start_stop=[400, 496],
-        #                         xy_window=(96,96), xy_overlap=overlap)
-        # windows += slide_window(self.img, x_start_stop=[None, None], y_start_stop=[432, 528],
-        #                         xy_window=(96,96), xy_overlap=overlap)
-        # windows += slide_window(self.img, x_start_stop=[None, None], y_start_stop=[400, 528],
-        #                         xy_window=(128,128), xy_overlap=overlap)
-        # windows += slide_window(self.img, x_start_stop=[None, None], y_start_stop=[432, 560],
-        #                         xy_window=(128,128), xy_overlap=overlap)
-        # windows += slide_window(self.img, x_start_stop=[None, None], y_start_stop=[400, 719],
-        #                         xy_window=(196,196), xy_overlap=overlap)
-
         windows += slide_window(self.img, x_start_stop=[None, None], y_start_stop=[400, 480],
                                 xy_window=(64,64), xy_overlap=overlap)
         windows += slide_window(self.img, x_start_stop=[None, None], y_start_stop=[400, 528],
@@ -54,50 +56,8 @@ class vehicles:
                                 xy_window=(128,128), xy_overlap=overlap)
         windows += slide_window(self.img, x_start_stop=[None, None], y_start_stop=[400, 719],
                                 xy_window=(196,196), xy_overlap=overlap)
-        # windows += slide_window(self.img, x_start_stop=[None, None], y_start_stop=[400, 719],
-        #                         xy_window=(256,256), xy_overlap=(0.75,0.75))
-        # windows += slide_window(self.img, x_start_stop=[None, None], y_start_stop=[464, 719],
-        #                         xy_window=(196,196), xy_overlap=(0.75,0.75))
 
         hot_windows = self.search_windows_conv(self.img, windows)
-        # hot_windows = self.search_windows(self.img, windows, self.clf, self.X_scaler, color_space=self.params['color_space'], 
-        #                                   spatial_size=self.params['spatial_size'], hist_bins=self.params['hist_bins'], 
-        #                                   orient=self.params['orient'], pix_per_cell=self.params['pix_per_cell'], 
-        #                                   cell_per_block=self.params['cell_per_block'], 
-        #                                   hog_channel=self.params['hog_channel'], spatial_feat=self.params['spatial_feat'], 
-        #                                   hist_feat=self.params['hist_feat'], hog_feat=self.params['hog_feat'])
-
-        # hot_windows = []
-        # # hot_windows += self.find_cars(self.img, ystart=350, ystop=719, scale=0.5, 
-        # #                      orient=self.params['orient'], pix_per_cell=self.params['pix_per_cell'], cell_per_block=self.params['cell_per_block'], 
-        # #                      spatial_size=self.params['spatial_size'], hist_bins=self.params['hist_bins'])
-        # # hot_windows += self.find_cars(self.img, ystart=350, ystop=719, scale=0.75, 
-        # #                      orient=self.params['orient'], pix_per_cell=self.params['pix_per_cell'], cell_per_block=self.params['cell_per_block'], 
-        # #                      spatial_size=self.params['spatial_size'], hist_bins=self.params['hist_bins'])
-        # hot_windows += self.find_cars(self.img, ystart=400, ystop=464, scale=1.0, 
-        #                      orient=self.params['orient'], pix_per_cell=self.params['pix_per_cell'], cell_per_block=self.params['cell_per_block'], 
-        #                      spatial_size=self.params['spatial_size'], hist_bins=self.params['hist_bins'])
-        # hot_windows += self.find_cars(self.img, ystart=416, ystop=480, scale=1.0, 
-        #                      orient=self.params['orient'], pix_per_cell=self.params['pix_per_cell'], cell_per_block=self.params['cell_per_block'], 
-        #                      spatial_size=self.params['spatial_size'], hist_bins=self.params['hist_bins'])
-        # hot_windows += self.find_cars(self.img, ystart=400, ystop=496, scale=1.5, 
-        #                      orient=self.params['orient'], pix_per_cell=self.params['pix_per_cell'], cell_per_block=self.params['cell_per_block'], 
-        #                      spatial_size=self.params['spatial_size'], hist_bins=self.params['hist_bins'])
-        # hot_windows += self.find_cars(self.img, ystart=432, ystop=528, scale=1.5, 
-        #                      orient=self.params['orient'], pix_per_cell=self.params['pix_per_cell'], cell_per_block=self.params['cell_per_block'], 
-        #                      spatial_size=self.params['spatial_size'], hist_bins=self.params['hist_bins'])
-        # hot_windows += self.find_cars(self.img, ystart=400, ystop=528, scale=2.0, 
-        #                      orient=self.params['orient'], pix_per_cell=self.params['pix_per_cell'], cell_per_block=self.params['cell_per_block'], 
-        #                      spatial_size=self.params['spatial_size'], hist_bins=self.params['hist_bins'])
-        # hot_windows += self.find_cars(self.img, ystart=432, ystop=560, scale=2.0, 
-        #                      orient=self.params['orient'], pix_per_cell=self.params['pix_per_cell'], cell_per_block=self.params['cell_per_block'], 
-        #                      spatial_size=self.params['spatial_size'], hist_bins=self.params['hist_bins'])
-        # hot_windows += self.find_cars(self.img, ystart=400, ystop=596, scale=3.0, 
-        #                      orient=self.params['orient'], pix_per_cell=self.params['pix_per_cell'], cell_per_block=self.params['cell_per_block'], 
-        #                      spatial_size=self.params['spatial_size'], hist_bins=self.params['hist_bins'])
-        # hot_windows += self.find_cars(self.img, ystart=464, ystop=660, scale=3.0, 
-        #                      orient=self.params['orient'], pix_per_cell=self.params['pix_per_cell'], cell_per_block=self.params['cell_per_block'], 
-        #                      spatial_size=self.params['spatial_size'], hist_bins=self.params['hist_bins'])
 
         # print("#")
         self.add_hot_windows(hot_windows)

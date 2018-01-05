@@ -1,0 +1,2 @@
+model_checkpoint_path: "vehicle_detect"
+all_model_checkpoint_paths: "vehicle_detect"
