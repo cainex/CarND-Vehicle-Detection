@@ -17,10 +17,16 @@ from itertools import chain
 import glob
 import tensorflow as tf
 from conv_utils import *
+import argparse
+
+parser = argparse.ArgumentParser(description='Advanced Lane Finding')
+parser.add_argument('--training_data_path', help='Path the trianing data for Classifier', dest='class_path', type=str, default='./training_data')
+
+args = parser.parse_args()
 
 # Retrieve training data
-cars = glob.glob('/mnt/raid/projects/udacity/sdc_nd/datasets/vehicle-detection/vehicles/*/*.png')
-notcars = glob.glob('/mnt/raid/projects/udacity/sdc_nd/datasets/vehicle-detection//non-vehicles/*/*.png')
+cars = glob.glob('{}/vehicles/*/*.png'.format(args.class_path))
+notcars = glob.glob('{}/non-vehicles/*/*.png'.format(args.class_path))
 
 X_cars = []
 y_cars = []
@@ -154,9 +160,6 @@ with tf.Session() as sess:
             print("Model saved")
             previous_accuracy = validation_accuracy
         print()
-        
-    #saver.save(sess, './traffic_sign')
-    #print("Model saved")
 
 ### Test model
 with tf.Session() as sess:
