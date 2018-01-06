@@ -1,6 +1,7 @@
 from utils import *
 from scipy.ndimage.measurements import label
 from conv_classifier import conv_classifier
+import matplotlib.pyplot as plt
 
 class vehicles:
     '''
@@ -22,6 +23,7 @@ class vehicles:
 
         # Detection heat-map
         self.heat_map = None
+        self.prethresh_heat_map = None
         self.threshold = 8
         #self.frame_threshold = 2
         self.labels = None
@@ -31,6 +33,8 @@ class vehicles:
 
         # Convolutional neural network classifier
         self.conv_clf = conv_classifier()
+        self.debug = False
+        self.debug_prefix = 'output'
 
     def process_image(self, image):
         '''
@@ -57,19 +61,36 @@ class vehicles:
         windows += slide_window(self.img, x_start_stop=[None, None], y_start_stop=[400, 719],
                                 xy_window=(196,196), xy_overlap=overlap)
 
+        # Perform seach in generated windows
         hot_windows = self.search_windows_conv(self.img, windows)
 
-        # print("#")
+        # Capture windows with detections
         self.add_hot_windows(hot_windows)
+
+        # Create heat-map
         self.calculate_heat_map()
         self.labels = label(self.heat_map)
 
+        # Draw labelled boxes
         # window_img = draw_boxes(draw_image, hot_windows, color=(255, 0, 255), thick=6)                    
         # window_img = draw_labeled_bboxes(window_img, self.labels)
         window_img = draw_labeled_bboxes(draw_image, self.labels)
 
-
-        # cv2.imwrite("output_images/heat_map_{}.jpg".format(self.img_out_counter), self.heat_map)
+        if self.debug:
+            search_windows_img = draw_boxes(self.img, windows, color=(255, 0, 255), thick=1) 
+            hot_window_img = draw_boxes(self.img, hot_windows, color=(255, 0, 255), thick=4)                    
+            cv2.imwrite('output_images/{}_search_windows.jpg'.format(self.debug_prefix), cv2.cvtColor(search_windows_img, cv2.COLOR_RGB2BGR))
+            # TODO: add heatmap plot here instead of writing image
+            fig, ax = plt.subplots( nrows=1, ncols=1)
+            ax.imshow(self.heat_map, cmap='hot')
+            plt.savefig('output_images/{}_heat_map.jpg'.format(self.debug_prefix))
+            fig, ax = plt.subplots( nrows=1, ncols=1)
+            ax.imshow(self.prethresh_heat_map, cmap='hot')
+            plt.savefig('output_images/{}_prethresh_heat_map.jpg'.format(self.debug_prefix))
+            fig, ax = plt.subplots( nrows=1, ncols=1)
+            ax.imshow(self.labels[0], cmap='gray')
+            plt.savefig('output_images/{}_labels.jpg'.format(self.debug_prefix))
+            cv2.imwrite('output_images/{}_hot_windows.jpg'.format(self.debug_prefix), cv2.cvtColor(hot_window_img, cv2.COLOR_RGB2BGR))
 
         return window_img
 
@@ -233,7 +254,10 @@ class vehicles:
 
         for windows in self.hist_windows:
             self.add_heat(windows)
-            
+
+        if self.debug:
+            self.prethresh_heat_map = np.copy(self.heat_map)
+                
         self.apply_threshold(self.threshold)
 
 

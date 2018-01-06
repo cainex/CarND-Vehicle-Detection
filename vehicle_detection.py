@@ -22,6 +22,7 @@ if __name__ == "__main__":
     parser.add_argument('--test_image', help="test image to use", dest='test_image', type=str, default=None)
     parser.add_argument('--test_video', help='test video file to use', dest='test_video', type=str, default='project_video.mp4')
     parser.add_argument('--output_video', help='name of output video file', dest='output_video', type=str, default='video_out.mp4')
+    parser.add_argument('--output_image', help='prefix for output test images', dest='output_image', type=str, default='output')
     parser.add_argument('--subclip_start', help='subclip start', dest='subclip_start', type=int, default=None)
     parser.add_argument('--subclip_end', help='subclip end', dest='subclip_end', type=int, default=None)
     parser.add_argument('--debug', help='display debug info into output', dest='debug', action='store_true', default=False)
@@ -59,6 +60,8 @@ if __name__ == "__main__":
 
 
     current_vehicles = vehicles(clf, class_params, X_scaler)
+    current_vehicles.debug = args.debug
+    current_vehicles.debug_prefix = args.output_image
 
     if (args.test_image == None):
         print("Processing video file:{}".format(args.test_video))
@@ -77,4 +80,4 @@ if __name__ == "__main__":
 
         final_image = current_vehicles.process_image(test_image)
 
-        cv2.imwrite('output_image.jpg', final_image)
+        cv2.imwrite('output_images/{}_image.jpg'.format(args.output_image), cv2.cvtColor(final_image, cv2.COLOR_RGB2BGR))
