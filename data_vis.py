@@ -53,7 +53,6 @@ if __name__ == "__main__":
     ax[3][2].set_title('notcar')
     ax[3][3].set_title('notcar')
 
-    plt.tight_layout()
     plt.savefig('output_images/dataset_sample.jpg')
 
     params = get_default_classifier_parameters()
@@ -70,7 +69,6 @@ if __name__ == "__main__":
     ax[1][1].imshow(notcar_feature_img, cmap='gray')
     ax[1][0].set_title('notcar')
     ax[1][1].set_title('notcar HOG features')
-    plt.tight_layout()
     plt.savefig('output_images/hog_images.jpg')
 
     test_images = []
@@ -85,7 +83,44 @@ if __name__ == "__main__":
     ax[1][1].imshow(test_images[3])
     ax[2][0].imshow(test_images[4])
     ax[2][1].imshow(test_images[5])
-    plt.tight_layout()
     plt.savefig('output_images/test_images.jpg')
 
-        
+    hot_images = []
+
+    for i in range(1,7):
+        hot_images.append(cv2.cvtColor(cv2.imread('output_images/test{}_hot_windows.jpg'.format(i)), cv2.COLOR_BGR2RGB))
+
+    fig, ax = plt.subplots(ncols=2, nrows=3)
+    ax[0][0].imshow(hot_images[0])
+    ax[0][1].imshow(hot_images[1])
+    ax[1][0].imshow(hot_images[2])
+    ax[1][1].imshow(hot_images[3])
+    ax[2][0].imshow(hot_images[4])
+    ax[2][1].imshow(hot_images[5])
+    plt.savefig('output_images/hot_windows.jpg')
+
+    hot_images = []
+
+    for i in range(8,14):
+        hot_images.append(cv2.cvtColor(cv2.imread('output_images/Video{}_hot_windows.jpg'.format(i)), cv2.COLOR_BGR2RGB))
+
+    prethresh_heat_maps = []
+
+    for i in range(8,14):
+        prethresh_heat_maps.append(cv2.cvtColor(cv2.imread('output_images/Video{}_prethresh_heat_map.jpg'.format(i)), cv2.COLOR_BGR2RGB))
+   
+    heat_maps = []
+
+    for i in range(8,14):
+        heat_maps.append(cv2.cvtColor(cv2.imread('output_images/Video{}_heat_map.jpg'.format(i)), cv2.COLOR_BGR2RGB))
+   
+    fig, ax = plt.subplots(figsize=(12.8, 25.6), ncols=3, nrows=6)
+    for i in range(0,6):
+        ax[i][0].imshow(hot_images[i])
+        ax[i][0].set_title('hot_windows')
+        ax[i][1].imshow(prethresh_heat_maps[i])
+        ax[i][1].set_title('pre-threshold')
+        ax[i][2].imshow(heat_maps[i])
+        ax[i][2].set_title('heatmap')
+    plt.savefig('output_images/all_heat_maps.jpg')
+

@@ -61,9 +61,10 @@ if __name__ == "__main__":
 
     current_vehicles = vehicles(clf, class_params, X_scaler)
     current_vehicles.debug = args.debug
-    current_vehicles.debug_prefix = args.output_image
 
     if (args.test_image == None):
+        current_vehicles.debug_prefix = 'Video'
+        current_vehicles.debug_increment = True
         print("Processing video file:{}".format(args.test_video))
         # TODO : add code to handle processing of a video 
         if args.subclip_start is None:
@@ -73,6 +74,7 @@ if __name__ == "__main__":
         vid_clip = clip1.fl_image(current_vehicles.process_image)
         vid_clip.write_videofile(args.output_video, audio=False)
     else:
+        current_vehicles.debug_prefix = args.output_image
         # test undistortion of a calibration image
         print("processing test image...")
  
