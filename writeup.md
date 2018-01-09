@@ -1,8 +1,3 @@
-## Writeup Template
-### You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
----
-
 **Vehicle Detection Project**
 
 The goals / steps of this project are the following:
@@ -31,7 +26,7 @@ The goals / steps of this project are the following:
 ---
 ### Writeup / README
 
-#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Vehicle-Detection/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
+#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.
 
 You're reading it!
 
@@ -116,14 +111,14 @@ The hot windows for each frame are saved (for a maximum of ten frames). From the
 
 Here's an example result showing the heatmap from 6 consecutive frames of the project video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the frames:
 
-### Here are six frames and their corresponding heatmaps:
+#### Here are six frames and their corresponding heatmaps:
 
 ![alt text][all_heat]
 
-### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
+#### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
 ![alt text][labels]
 
-### Here the resulting bounding boxes are drawn onto the last frame in the series:
+#### Here the resulting bounding boxes are drawn onto the last frame in the series:
 ![alt text][final]
 
 
@@ -134,5 +129,9 @@ Here's an example result showing the heatmap from 6 consecutive frames of the pr
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+The challenges I faced primarily revolved around finding the best set of parameters for the HOG features, and the compute time required for both trianing and inference of the SVM classifier. When using just spatial, color and HOG features with a linear SVM, the trianing time was about 30 minutes, and the time required to render the entire project video was upwards of an hour. This also resulted in very messy results with a limited number of windows and quite a few false positives. I had some succes with tweaking the heatmap thresholds, but the results were not as good as I had expected.
+
+Once I moved to a two-stage classifier using a convolutional neural network in conjuction with the SVM classifier using only HOG features, my results were better, and the time to render the entire project video dropped by an order of magnitude, and my final results were much cleaner.
+
+I think a more robust system could be made by using a Region-based Convolution Neural Network (R-CNN) as described here: [Object Detection using Deep Learning for advanced users](https://medium.com/ilenze-com/object-detection-using-deep-learning-for-advanced-users-part-1-183bbbb08b19) and the newer [Fast R-CNN](https://arxiv.org/abs/1504.08083). These systems first identify regions of interest (RoI) using an object proposal algorith such as selective search, and pass those into a more traditional image classification CNN. The use of an algorithm like selective search to generate the RoIs vs. a blanket sliding window search provides much more efficient classification and better object localization. The other advantage of using a system like this, is you can easily identify different object types limited only by the CNN being used.
 

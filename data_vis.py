@@ -18,7 +18,7 @@ if __name__ == "__main__":
         cars_imgs.append(cv2.imread(cars[i*1000]))
         notcars_imgs.append(cv2.imread(notcars[i*1000]))
 
-    fig, ax = plt.subplots(ncols=4, nrows=4)
+    fig, ax = plt.subplots(figsize=(12.8, 12.8), ncols=4, nrows=4)
     ax[0][0].imshow(cars_imgs[0])
     ax[0][1].imshow(cars_imgs[1])
     ax[0][2].imshow(cars_imgs[2])
